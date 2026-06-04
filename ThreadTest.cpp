@@ -3,11 +3,13 @@
 
 void Loop1(){
     while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         std::cout << "************** 111111 *********** \n" << std::endl;
     }
 }
 void Loop2(){
     while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         std::cout << "############### 2222222 ############### \n" << std::endl;
     }
 }
