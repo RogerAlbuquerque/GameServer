@@ -11,9 +11,17 @@ public:
     bool Start();
 
     void Run();
-
+    
     void receivePackets();
 
+    void handleConnect(const sockaddr_in& clientAddr);
+
+    void handleInput();
+
+    void handleInteract();
+
+    
+    void handleDisconnect();
 private:
 
     UdpSocket socket;
@@ -21,4 +29,6 @@ private:
     World world;
 
     SessionManager sessionManager;
+
+    
 };
