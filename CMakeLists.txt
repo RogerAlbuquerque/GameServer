@@ -9,5 +9,10 @@ file(GLOB_RECURSE FONTES_PROJETO "Src/*.cpp" "Src/*.h")
 
 # 3. Especifica o nome do executável e os arquivos de origem
 add_executable(meu_executavel ${FONTES_PROJETO})
-
-target_include_directories(meu_executavel PRIVATE Src/headers)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+target_include_directories( meu_executavel PRIVATE 
+    Src/headers/GameServer
+    Src/headers/Network
+    Src/headers/World
+    Src/headers/SessionManagement
+)
