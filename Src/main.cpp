@@ -1,15 +1,5 @@
-#include <iostream>
-#include <chrono>
 #include "GameServer.h"
-#include "PlayerSession.h"
-#include "SessionManager.h"
-#include "World.h"
 
-uint64_t get_current_time_seconds() {
-    auto now = std::chrono::system_clock::now();
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
-    return static_cast<uint64_t>(seconds.count());
-}
 
 int main() {
 

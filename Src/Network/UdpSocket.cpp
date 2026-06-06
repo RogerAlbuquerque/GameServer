@@ -1,3 +1,5 @@
+#include <iostream>
+#include <ostream>
 #include <unistd.h>
 #include "UdpSocket.h"
 
@@ -16,9 +18,11 @@ bool UdpSocket::Start(int port)
 
     if(bind(socketFd,(sockaddr*)&serverAddr,sizeof(serverAddr)) < 0)
     {
+        std::cout << "Erro ao iniciar o servidor" << std::endl;
         return false;
     }
 
+    std::cout << "Socket rodando na porta 7777" << std::endl;
     return true;
 }
 
@@ -31,6 +35,7 @@ int UdpSocket::Receive(
     socklen_t clientSize =
         sizeof(clientAddr);
 
+    std::cout << "Envie algum pacote em bytes para se conectar...: " << std::endl;
     return recvfrom(
         socketFd,
         buffer,

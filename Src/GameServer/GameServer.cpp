@@ -1,5 +1,11 @@
 #include "GameServer.h"
+#include "PacketSystem/InputFlags.h"
+#include "PacketSystem/InputPacket.h"
+#include "PacketSystem/ConnectAcceptdPacket.h"
+#include "PacketSystem/PacketHeader.h"
+#include "PacketSystem/PacketType.h"
 #include "UdpSocket.h"
+#include <iostream>
 
 bool GameServer::Start()
 {
@@ -24,19 +30,29 @@ void GameServer::receivePackets()
 
     sockaddr_in clientAddr;
 
-    int bytes = socket.Receive(buffer, sizeof(buffer), clientAddr);
+    int bytes = socket.Receive(
+        buffer,
+        sizeof(buffer),
+        clientAddr);
 
     if(bytes <= 0)
         return;
-    
-    switch(packetType)
+
+    std::cout << "Checando bytes enviados...: " << std::endl;
+
+    PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+
+    switch(header->type)
     {
-        case Connect:
+        case PacketType::Connect:
             handleConnect(clientAddr);
             break;
 
-        case Input:
-            handleInput();
+        case PacketType::Input:
+            handleInput(clientAddr, buffer, bytes);
+            break;
+
+        default:
             break;
     }
     
@@ -47,12 +63,16 @@ void GameServer::receivePackets()
 void GameServer::handleConnect(
     const sockaddr_in& clientAddr)
 {
+    std::cout << "\n\nHandle Connect: \nCriando conexão para o player" << std::endl;
     Player player;
 
-    player.id = 2; // nextPlayerId -> tem que ser isso na verdade, invés de 2
-
+    player.id = nextPlayerId++; 
+    player.transform.x = 0.0f;
+    player.transform.y = 0.0f;
+    
     world.AddPlayer(player);
 
+    std::cout << "Player adicionado ao mundo" << std::endl;
     PlayerSession session;
 
     session.playerId = player.id;
@@ -60,11 +80,25 @@ void GameServer::handleConnect(
     session.connected = true;
 
     sessionManager.AddSession(session);
+     std::cout
+        << "Player conectado à uma sessão, ID: "
+        << player.id
+        << std::endl;
+
+    ConnectAcceptedPacket response;
+    response.header.type = PacketType::ConnectAccepted;
+    response.playerId = player.id;
+
+    socket.Send(reinterpret_cast<char*>(&response), sizeof(response), clientAddr);
+    std::cout << "Conexão aceita\n\n" << std::endl;
 }
 
-void GameServer::handleInput()
+void GameServer::handleInput(
+    const sockaddr_in& clientAddr,
+    const char* buffer,
+    int bytes)
 {
-    
+   
 }
 
 void GameServer::handleInteract()

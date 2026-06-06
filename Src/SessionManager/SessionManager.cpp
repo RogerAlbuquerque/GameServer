@@ -1,4 +1,6 @@
-#include "SessionManagement/SessionManager.h"
+#include "SessionManager.h"
+#include "PlayerSession.h"
+#include "SessionManager.h"
 
 void SessionManager::AddSession(
     const PlayerSession& session)
@@ -15,4 +17,21 @@ PlayerSession* SessionManager::GetSession(
         return nullptr;
 
     return &it->second;
+}
+
+
+PlayerSession* SessionManager::FindByEndpoint(const sockaddr_in& endpoint)
+{
+    for(auto& [id, session] : sessions)
+    {
+        if(session.endpoint.sin_addr.s_addr ==
+            endpoint.sin_addr.s_addr &&
+           session.endpoint.sin_port ==
+            endpoint.sin_port)
+        {
+            return &session;
+        }
+    }
+
+    return nullptr;
 }

@@ -11,6 +11,8 @@ public:
 
     PlayerSession* GetSession(uint32_t playerId);
 
+    PlayerSession* FindByEndpoint(const sockaddr_in& endpoint);
+
 private:
 
     std::unordered_map<uint32_t, PlayerSession> sessions;

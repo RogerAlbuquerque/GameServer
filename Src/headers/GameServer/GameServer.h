@@ -6,29 +6,39 @@
 
 class GameServer
 {
-public:
+    public:
 
-    bool Start();
+        bool Start();
 
-    void Run();
+        void Run();
     
-    void receivePackets();
+    private:
 
-    void handleConnect(const sockaddr_in& clientAddr);
+        void receivePackets();
 
-    void handleInput();
+        void updateGame();
 
-    void handleInteract();
+        void sendSnapshot();
 
-    
-    void handleDisconnect();
-private:
+        void handleConnect(const sockaddr_in& clientAddr);
 
-    UdpSocket socket;
+        void handleInput(
+            const sockaddr_in& clientAddr,
+            const char* buffer,
+            int bytes
+        );
 
-    World world;
+        void handleInteract();
+        
+        void handleDisconnect();
+        
+    private:
 
-    SessionManager sessionManager;
+        UdpSocket socket;
 
-    
+        World world;
+
+        SessionManager sessionManager;
+
+        uint32_t nextPlayerId = 0;
 };
