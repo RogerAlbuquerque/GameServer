@@ -3,35 +3,37 @@
 #include "SessionManager.h"
 
 void SessionManager::AddSession(
-    const PlayerSession& session)
+     std::unique_ptr<PlayerSession> session)
+
 {
-    sessions[session.playerId] = session;
+    Endpoint endpoint;
+    endpoint.ip = session->endpoint.sin_addr.s_addr;
+    endpoint.port = session->endpoint.sin_port;
+    
+    PlayerSession* rawPointer = session.get();
+
+    sessionsByPlayerId[session->playerId] = std::move(session);
+    sessionsByEndpoint[endpoint] = rawPointer;
 }
 
-PlayerSession* SessionManager::GetSession(
+PlayerSession* SessionManager::GetSessionByPlayerId(
     uint32_t playerId)
 {
-    auto it = sessions.find(playerId);
+    auto it = sessionsByPlayerId.find(playerId);
 
-    if(it == sessions.end())
+    if(it == sessionsByPlayerId.end())
         return nullptr;
 
-    return &it->second;
+    return it->second.get();
 }
 
 
-PlayerSession* SessionManager::FindByEndpoint(const sockaddr_in& endpoint)
+PlayerSession* SessionManager::GetSessionByEndpoint(const Endpoint& endpoint)
 {
-    for(auto& [id, session] : sessions)
-    {
-        if(session.endpoint.sin_addr.s_addr ==
-            endpoint.sin_addr.s_addr &&
-           session.endpoint.sin_port ==
-            endpoint.sin_port)
-        {
-            return &session;
-        }
-    }
+     auto it = sessionsByEndpoint.find(endpoint);
 
-    return nullptr;
+      if(it == sessionsByEndpoint.end())
+        return nullptr;
+ 
+       return it->second;
 }

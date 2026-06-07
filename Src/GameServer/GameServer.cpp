@@ -1,4 +1,5 @@
 #include "GameServer.h"
+#include "Endpoint.h"
 #include "PacketSystem/InputFlags.h"
 #include "PacketSystem/InputPacket.h"
 #include "PacketSystem/ConnectAcceptdPacket.h"
@@ -66,20 +67,20 @@ void GameServer::handleConnect(
     std::cout << "\n\nHandle Connect: \nCriando conexão para o player" << std::endl;
     Player player;
 
-    player.id = nextPlayerId++; 
+    player.id = ++nextPlayerId; 
     player.transform.x = 0.0f;
     player.transform.y = 0.0f;
     
     world.AddPlayer(player);
 
     std::cout << "Player adicionado ao mundo" << std::endl;
-    PlayerSession session;
+    std::unique_ptr<PlayerSession> session;
 
-    session.playerId = player.id;
-    session.endpoint = clientAddr;
-    session.connected = true;
+    session->playerId = player.id;
+    session->endpoint = clientAddr;
+    session->connected = true;
 
-    sessionManager.AddSession(session);
+    sessionManager.AddSession(std::move(session));
      std::cout
         << "Player conectado à uma sessão, ID: "
         << player.id
@@ -98,7 +99,34 @@ void GameServer::handleInput(
     const char* buffer,
     int bytes)
 {
-   
+     std::cout << "Handle Input: Analisando input do player" << std::endl;
+    
+     Endpoint endpoint;
+     endpoint.ip =clientAddr.sin_addr.s_addr;
+     endpoint.port = clientAddr.sin_port;
+     
+     PlayerSession* session = sessionManager.GetSessionByEndpoint(endpoint);
+
+    if(session == nullptr)
+        return;
+
+    auto player = world.GetPlayer(session->playerId);
+
+    if(player == nullptr)
+        return;
+
+    InputPacket* packet =
+        (InputPacket*)buffer;
+
+    if(packet->inputFlags &
+        InputFlags::Up)
+    {
+        std::cout
+            << "Player "
+            << player->id
+            << " apertou W"
+            << std::endl;
+    }
 }
 
 void GameServer::handleInteract()
