@@ -6,9 +6,7 @@
 
 struct EndpointHash
 {
-    std::size_t operator()(
-        const Endpoint& endpoint) const
-    {
+    std::size_t operator()(const Endpoint& endpoint) const {
         return std::hash<uint32_t>()(endpoint.ip) ^ std::hash<uint16_t>()(endpoint.port);
     }
 };
