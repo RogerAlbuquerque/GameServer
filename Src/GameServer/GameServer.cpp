@@ -10,7 +10,9 @@
 #include <iostream>
 #include <memory>
 
-bool GameServer::Start() { return socket.Start(7777); }
+bool GameServer::Start() { 
+  return socket.Start(7777);
+}
 
 void GameServer::Run() {
   while (true) {
