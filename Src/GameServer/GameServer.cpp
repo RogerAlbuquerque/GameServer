@@ -38,7 +38,7 @@ void GameServer::receivePackets() {
   endpoint.ip = clientAddr.sin_addr.s_addr;
   endpoint.port = clientAddr.sin_port;
 
-  std::cout << "\nChecando bytes enviados...: " << std::endl;
+  std::cout << "Checando bytes enviados...: " << std::endl;
 
   PacketHeader *header = reinterpret_cast<PacketHeader *>(buffer);
 
@@ -69,19 +69,6 @@ void GameServer::receivePackets() {
 }
 
 void GameServer::handleConnect(const sockaddr_in &clientAddr) {
-char ip[INET_ADDRSTRLEN];
-
-inet_ntop(
-    AF_INET,
-    &clientAddr.sin_addr,
-    ip,
-    sizeof(ip));
-
-std::cout
-    << ip
-    << ":"
-    << ntohs(clientAddr.sin_port)
-    << std::endl;
     
   std::cout << "\n\nHandle Connect: \nCriando conexão para o player"
             << std::endl;
@@ -137,16 +124,44 @@ void GameServer::handleInput(const sockaddr_in &clientAddr, const char *buffer, 
   if (player == nullptr){
     std::cout << "Erro ao adicionar player ao mundo" << std::endl;
     return;}
-  
-std::cout << "Player adicionado ao mundo" << std::endl;
+
+  std::cout << "Player Encontrado no mundo" << std::endl;
   if (bytes < sizeof(InputPacket)) {
     return;
   }
   const InputPacket* packet = reinterpret_cast<const InputPacket*>(buffer);
+  
+  std::cout << "enviando input" << std::endl;
 
-  if (packet->inputFlags & InputFlags::Up) {
-    std::cout << "Player " << player->id << " apertou W\n\n" << std::endl;
-  }
+  player->input.left = packet->inputFlags & InputFlags::Left;
+  player->input.right = packet->inputFlags & InputFlags::Right;
+  player->input.up = packet->inputFlags & InputFlags::Up;
+  player->input.down = packet->inputFlags & InputFlags::Down;
+  player->input.interact = packet->inputFlags & InputFlags::Interact;
+
+  std::cout << player->input.left << " -> input: left" << std::endl;
+  std::cout << player->input.right << " -> input: right" << std::endl;
+  std::cout << player->input.up << " -> input: up" << std::endl;
+  std::cout << player->input.down << " -> input: down" << std::endl;
+  std::cout << player->input.interact << " -> input: interact" << std::endl;
+
+  // if (packet->inputFlags & InputFlags::Left) {
+  //   std::cout << "Player " << player->id << " apertou A\n\n" << std::endl;
+  // }
+  // if (packet->inputFlags & InputFlags::Right) {
+  //   std::cout << "Player " << player->id << " apertou D\n\n" << std::endl;
+  // }
+  // if (packet->inputFlags & InputFlags::Up) {
+  //   std::cout << "Player " << player->id << " apertou W\n\n" << std::endl;
+  // }
+  // if (packet->inputFlags & InputFlags::Down) {
+  //   std::cout << "Player " << player->id << " apertou S\n\n" << std::endl;
+  // }
+  // if(packet->inputFlags && (!InputFlags::Left || !InputFlags::Right || !InputFlags::Up || !InputFlags::Down))
+  // {
+  //   std::cout << "Player " << player->id << " apertou tecla não mapeada\n\n" << std::endl;
+  // }
+
 }
 
 void GameServer::handleInteract() {}

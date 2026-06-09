@@ -35,7 +35,7 @@ int UdpSocket::Receive(
     socklen_t clientSize =
         sizeof(clientAddr);
 
-    std::cout << "Envie algum pacote em bytes para se conectar...: " << std::endl;
+    std::cout << "\n\nEnvie algum pacote em bytes para se conectar...: " << std::endl;
     return recvfrom(
         socketFd,
         buffer,
