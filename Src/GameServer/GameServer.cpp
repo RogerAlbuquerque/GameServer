@@ -1,4 +1,6 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include "GameServer.h"
 #include "Endpoint.h"
 #include "PacketSystem/ConnectAcceptdPacket.h"
@@ -14,13 +16,27 @@ bool GameServer::Start() {
 }
 
 void GameServer::Run() {
-  while (true) {
+using Clock = std::chrono::steady_clock;
+
+constexpr auto TickTime =
+
+    std::chrono::microseconds(16667);
+
+
+auto nextTick = Clock::now();
+
+while (true)
+{
     receivePackets();
 
     updateGame();
 
     // sendSnapshots();
-  }
+
+    nextTick += TickTime;
+
+    std::this_thread::sleep_until(nextTick);
+}
 }
 
 void GameServer::receivePackets() {
