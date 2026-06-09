@@ -27,13 +27,9 @@ bool UdpSocket::Start(int port)
 }
 
 
-int UdpSocket::Receive(
-    char* buffer,
-    int bufferSize,
-    sockaddr_in& clientAddr)
+int UdpSocket::Receive(char* buffer, int bufferSize, sockaddr_in& clientAddr)
 {
-    socklen_t clientSize =
-        sizeof(clientAddr);
+    socklen_t clientSize = sizeof(clientAddr);
 
     std::cout << "\n\nEnvie algum pacote em bytes para se conectar...: " << std::endl;
     return recvfrom(

@@ -29,3 +29,8 @@ Npc* World::GetNpc(uint32_t id)
 
     return &it->second;
 }
+
+std::unordered_map<uint32_t, Player>& World::GetPlayers()
+{
+    return players;
+}

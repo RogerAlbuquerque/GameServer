@@ -21,4 +21,6 @@ class World
         std::unordered_map<uint32_t, Player> players;
 
         std::unordered_map<uint32_t, Npc> npcs;
+
+        std::unordered_map<uint32_t, Player>& GetPlayers();
 };

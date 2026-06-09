@@ -1,3 +1,4 @@
+#include <iostream>
 #include "GameServer.h"
 #include "Endpoint.h"
 #include "PacketSystem/ConnectAcceptdPacket.h"
@@ -7,8 +8,6 @@
 #include "PacketSystem/PacketType.h"
 #include "PlayerSession.h"
 #include "UdpSocket.h"
-#include <iostream>
-#include <memory>
 
 bool GameServer::Start() { 
   return socket.Start(7777);
@@ -18,7 +17,7 @@ void GameServer::Run() {
   while (true) {
     receivePackets();
 
-    // updateGame();
+    updateGame();
 
     // sendSnapshots();
   }
@@ -87,12 +86,13 @@ void GameServer::handleConnect(const sockaddr_in &clientAddr) {
   sessionManager.AddSession(std::move(session));
   std::cout << "Player conectado à uma sessão, ID: " << player.id << std::endl;
 
+  world.AddPlayer(player);
+  std::cout << "Player adicionado ao mundo" << std::endl;
+
   ConnectAcceptedPacket response;
   response.header.type = PacketType::ConnectAccepted;
   response.playerId = player.id;
 
-  world.AddPlayer(player);
-  std::cout << "Player adicionado ao mundo" << std::endl;
 
   socket.Send(reinterpret_cast<char *>(&response), sizeof(response),
               clientAddr);
@@ -104,7 +104,6 @@ void GameServer::handleInput(const sockaddr_in &clientAddr, const char *buffer, 
 
   std::cout << "Handle Input: Analisando input do player" << std::endl;
 
-  
   Endpoint endpoint;
   endpoint.ip = clientAddr.sin_addr.s_addr;
   endpoint.port = clientAddr.sin_port;
@@ -117,16 +116,18 @@ void GameServer::handleInput(const sockaddr_in &clientAddr, const char *buffer, 
 
     return;
   }
+  
+  Player *player = world.GetPlayer(session->playerId);
+  
   std::cout << "Sessão de player identificada, existe no mundo, está conectado" << std::endl;
 
-  Player *player = world.GetPlayer(session->playerId);
-
   if (player == nullptr){
-    std::cout << "Erro ao adicionar player ao mundo" << std::endl;
+    std::cout << "Erro ao procurar player no mundo" << std::endl;
     return;}
 
   std::cout << "Player Encontrado no mundo" << std::endl;
   if (bytes < sizeof(InputPacket)) {
+    std::cout << "Deu erro aqui, não é um, ou só um Input Packet que ta chegando" << std::endl;
     return;
   }
   const InputPacket* packet = reinterpret_cast<const InputPacket*>(buffer);
@@ -144,24 +145,20 @@ void GameServer::handleInput(const sockaddr_in &clientAddr, const char *buffer, 
   std::cout << player->input.up << " -> input: up" << std::endl;
   std::cout << player->input.down << " -> input: down" << std::endl;
   std::cout << player->input.interact << " -> input: interact" << std::endl;
+  system("clear");
+}
 
-  // if (packet->inputFlags & InputFlags::Left) {
-  //   std::cout << "Player " << player->id << " apertou A\n\n" << std::endl;
-  // }
-  // if (packet->inputFlags & InputFlags::Right) {
-  //   std::cout << "Player " << player->id << " apertou D\n\n" << std::endl;
-  // }
-  // if (packet->inputFlags & InputFlags::Up) {
-  //   std::cout << "Player " << player->id << " apertou W\n\n" << std::endl;
-  // }
-  // if (packet->inputFlags & InputFlags::Down) {
-  //   std::cout << "Player " << player->id << " apertou S\n\n" << std::endl;
-  // }
-  // if(packet->inputFlags && (!InputFlags::Left || !InputFlags::Right || !InputFlags::Up || !InputFlags::Down))
-  // {
-  //   std::cout << "Player " << player->id << " apertou tecla não mapeada\n\n" << std::endl;
-  // }
 
+void GameServer::updateGame()
+{
+  const float deltaTime = 1.0f / 60.0f;
+
+  for (auto &[id, player] : world.GetPlayers()) {
+    player.Update(deltaTime);
+    std::cout << "\n\nPosição X do player: " << player.transform.x << std::endl;
+    std::cout << "\n\nPosição Y do player: " << player.transform.y << std::endl;
+    
+  }
 }
 
 void GameServer::handleInteract() {}

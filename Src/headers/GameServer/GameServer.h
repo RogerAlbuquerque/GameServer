@@ -16,8 +16,6 @@ class GameServer
 
         void receivePackets();
 
-        void updateGame();
-
         void sendSnapshot();
 
         void handleConnect(const sockaddr_in& clientAddr);
@@ -41,4 +39,7 @@ class GameServer
         SessionManager sessionManager;
 
         uint32_t nextPlayerId = 0;
+
+    private:
+        void updateGame();
 };
