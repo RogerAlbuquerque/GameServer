@@ -32,13 +32,26 @@ void GameServer::receivePackets() {
   if (bytes <= 0)
     return;
 
-  std::cout << "Checando bytes enviados...: " << std::endl;
+  Endpoint endpoint;
+  endpoint.ip = clientAddr.sin_addr.s_addr;
+  endpoint.port = clientAddr.sin_port;
+
+  std::cout << "\nChecando bytes enviados...: " << std::endl;
 
   PacketHeader *header = reinterpret_cast<PacketHeader *>(buffer);
 
   switch (header->type) {
-  case PacketType::Connect:
+  case PacketType::Connect:{
+
+
+    if(PlayerSession *session = sessionManager.GetSessionByEndpoint(endpoint))
+    {
+      std::cout << "Player ja conectado" << std::endl;
+      return;
+    }
     handleConnect(clientAddr);
+  }
+    
     break;
 
   case PacketType::Input:
@@ -54,7 +67,20 @@ void GameServer::receivePackets() {
 }
 
 void GameServer::handleConnect(const sockaddr_in &clientAddr) {
+char ip[INET_ADDRSTRLEN];
 
+inet_ntop(
+    AF_INET,
+    &clientAddr.sin_addr,
+    ip,
+    sizeof(ip));
+
+std::cout
+    << ip
+    << ":"
+    << ntohs(clientAddr.sin_port)
+    << std::endl;
+    
   std::cout << "\n\nHandle Connect: \nCriando conexão para o player"
             << std::endl;
   Player player;
