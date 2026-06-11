@@ -8,9 +8,11 @@
 #include "PacketSystem/InputPacket.h"
 #include "PacketSystem/PacketHeader.h"
 #include "PacketSystem/PacketType.h"
+#include "PacketSystem/PacketWriter.h"
 #include "PlayerSession.h"
 #include "UdpSocket.h"
 #include "WorldSnapshot.h"
+#include <cstring>
 
 bool GameServer::Start() { 
   return socket.Start(7777);
@@ -180,15 +182,18 @@ void GameServer::updateGame()
 
 void GameServer::sendSnapshot()
 {
-  WorldSnapshot packet{};
-  packet.header.type = PacketType::Snapshot;
+  PacketWriter packetWriter;
+  WorldSnapshotHeader header{};
+  header.header.type = PacketType::Snapshot;
+  header.playerCount = 0;
+  header.playerCount = world.players.size();
+  packetWriter.Write(header);
 
-  packet.playerCount = 0;
-
+   std::cout << "\n\nNo mundo tem isso de player: " << world.players.size() << std::endl;
+   
   for (auto &[id, player] : world.GetPlayers()) {
-    if (packet.playerCount >= 32)
-      break;
-    PlayerSnapshot &snapshot = packet.players[packet.playerCount];
+
+    PlayerSnapshot snapshot;
 
     snapshot.playerId = player.id;
 
@@ -196,17 +201,21 @@ void GameServer::sendSnapshot()
 
     snapshot.y = player.transform.y;
 
-    packet.playerCount++;
-  }
+    packetWriter.Write(snapshot);
 
-  size_t packetSize = sizeof(PacketHeader) + sizeof(uint16_t) + packet.playerCount * sizeof(PlayerSnapshot);
+    header.playerCount++;
+
+  }
+  
 
   for(auto& [id, session] : sessionManager.GetAllSessions())
 {
     socket.Send(
-    reinterpret_cast<char*>(&packet),
-    packetSize,
+    packetWriter.Data(),
+    packetWriter.Size(),
     session->endpoint);
+  
+    
 }
 }
 
