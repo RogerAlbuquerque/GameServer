@@ -37,3 +37,7 @@ PlayerSession* SessionManager::GetSessionByEndpoint(const Endpoint& endpoint)
  
        return it->second;
 }
+
+const std::unordered_map<uint32_t, std::unique_ptr<PlayerSession>>& SessionManager::GetAllSessions() const {
+  return sessionsByPlayerId;
+}

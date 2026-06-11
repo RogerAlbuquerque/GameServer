@@ -15,4 +15,5 @@ target_include_directories( meu_executavel PRIVATE
     Src/headers/Network
     Src/headers/World
     Src/headers/SessionManagement
+    Src/headers/Snapshots
 )

@@ -10,6 +10,7 @@
 #include "PacketSystem/PacketType.h"
 #include "PlayerSession.h"
 #include "UdpSocket.h"
+#include "WorldSnapshot.h"
 
 bool GameServer::Start() { 
   return socket.Start(7777);
@@ -31,7 +32,7 @@ while (true)
 
     updateGame();
 
-    // sendSnapshots();
+    sendSnapshot();
 
     nextTick += TickTime;
 
@@ -176,6 +177,39 @@ void GameServer::updateGame()
     
   }
 }
+
+void GameServer::sendSnapshot()
+{
+  WorldSnapshot packet{};
+  packet.header.type = PacketType::Snapshot;
+
+  packet.playerCount = 0;
+
+  for (auto &[id, player] : world.GetPlayers()) {
+    if (packet.playerCount >= 32)
+      break;
+    PlayerSnapshot &snapshot = packet.players[packet.playerCount];
+
+    snapshot.playerId = player.id;
+
+    snapshot.x = player.transform.x;
+
+    snapshot.y = player.transform.y;
+
+    packet.playerCount++;
+  }
+
+  size_t packetSize = sizeof(PacketHeader) + sizeof(uint16_t) + packet.playerCount * sizeof(PlayerSnapshot);
+
+  for(auto& [id, session] : sessionManager.GetAllSessions())
+{
+    socket.Send(
+    reinterpret_cast<char*>(&packet),
+    packetSize,
+    session->endpoint);
+}
+}
+
 
 void GameServer::handleInteract() {}
 

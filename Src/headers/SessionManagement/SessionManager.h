@@ -17,8 +17,9 @@ public:
 
     PlayerSession* GetSessionByEndpoint(const Endpoint& endpoint);
 
+    const std::unordered_map<uint32_t, std::unique_ptr<PlayerSession>>& GetAllSessions() const;
 
-private:
+  private:
 
     std::unordered_map<uint32_t, std::unique_ptr<PlayerSession>> sessionsByPlayerId;
     //uint32_t = <Id do player>
