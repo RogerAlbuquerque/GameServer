@@ -62,8 +62,6 @@ void GameServer::receivePackets() {
 
   switch (header->type) {
   case PacketType::Connect:{
-
-
     if(PlayerSession *session = sessionManager.GetSessionByEndpoint(endpoint))
     {
       std::cout << "Player ja conectado" << std::endl;
@@ -174,8 +172,8 @@ void GameServer::updateGame()
 
   for (auto &[id, player] : world.GetPlayers()) {
     player.Update(deltaTime);
-    std::cout << "\n\nPosição X do player: " << player.transform.x << std::endl;
-    std::cout << "\n\nPosição Y do player: " << player.transform.y << std::endl;
+    std::cout << "Posição X do player: " << player.transform.x << std::endl;
+    std::cout << "Posição Y do player: " << player.transform.y << std::endl;
     
   }
 }
@@ -190,7 +188,7 @@ void GameServer::sendSnapshot()
   packetWriter.Write(header);
 
    std::cout << "\n\nNo mundo tem isso de player: " << world.players.size() << std::endl;
-   
+
   for (auto &[id, player] : world.GetPlayers()) {
 
     PlayerSnapshot snapshot;
