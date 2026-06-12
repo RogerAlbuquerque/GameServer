@@ -14,12 +14,18 @@ public:
   
   void SendInputButton(const sockaddr_in &clientAddr);
 
+  void receiveThread();
+
+  void HandleConnectAccepted(const char* buffer, int bytes);
   
+  void HandleSnapshot(const char* buffer,int bytes);
 
   sockaddr_in GetAccessForGamerServer();
 
 
 private:
   SOCKET socketFd = INVALID_SOCKET;
+
+  uint32_t playerId;
 
 };

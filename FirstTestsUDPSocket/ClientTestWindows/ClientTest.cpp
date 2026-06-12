@@ -1,17 +1,24 @@
 
 #include "headers/ConnectPacket.h"
+#include "headers/WorldSnapshot.h"
+#include "headers/PlayerSnapshot.h"
+#include "headers/ConnectAcceptdPacket.h"
 #include "headers/InputFlags.h"
 #include "headers/InputPacket.h"
+#include "headers/PacketType.h"
 #include "headers/SocketClientForTest.h"
 #include <Windows.h>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
 int main() {
   WSADATA wsaData;
+    SetConsoleOutputCP(CP_UTF8); 
+    SetConsoleCP(CP_UTF8);
 
   if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
     std::cout << "Erro ao iniciar Winsock\n";
@@ -27,6 +34,7 @@ int main() {
   std::cout << "I: InputPacket - 03" << std::endl;
   std::cout << "Ou teclas WASD para andar" << std::endl;
 
+  std::thread receiveThread(&SocketClient::receiveThread,&socket);
   socket.SendConnectPacket(GameServerAddr);
   socket.SendInputButton(GameServerAddr);
   // while (true) {
@@ -130,51 +138,79 @@ void SocketClient::SendInputButton(const sockaddr_in &clientAddr) {
     Sleep(16);
   }
 
-  //  { // for (char c : input) {
 
-  //   switch (c) {
-  //   case 'c':
-  //   case 'C':
-  //     std::cout << "Tecla não mapeada: C" << std::endl;
-  //     break;
+}
 
-  //   case 'i':
-  //   case 'I':
-  //     std::cout << "Tecla não mapeada I" << std::endl;
-  //     break;
+  void SocketClient::receiveThread() {
+   char buffer[1400];
 
-  //   case 'a':
-  //   case 'A':
-  //     Input.inputFlags |= InputFlags::Left;
-  //     break;
+    sockaddr_in serverAddr{};
 
-  //   case 'd':
-  //   case 'D':
-  //     Input.inputFlags |= InputFlags::Right;
-  //     break;
+    int serverSize = sizeof(serverAddr);
 
-  //   case 'w':
-  //   case 'W':
-  //     Input.inputFlags |= InputFlags::Up;
-  //     break;
+    while(true)
+    {
+        int bytes = recvfrom(socketFd,buffer,sizeof(buffer),0,(sockaddr*)&serverAddr,&serverSize);
+        if (bytes == SOCKET_ERROR)
+        {
+            std::cout << "Erro ao receber pacote\n";
+            continue;
+        }
+        if (bytes < sizeof(PacketHeader)){ continue;}
 
-  //   case 's':
-  //   case 'S':
-  //     Input.inputFlags |= InputFlags::Down;
-  //     break;
+        const PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+        switch(header->type)
+        {
+          case PacketType::Snapshot:
+          
+            SocketClient::HandleSnapshot(buffer, sizeof(buffer));
+            break;
+          
 
-  //   case 'e':
-  //   case 'E':
-  //     Input.inputFlags |= InputFlags::Interact;
-  //     break;
+          case PacketType::ConnectAccepted:
+           
+              const ConnectAcceptedPacket* player = reinterpret_cast<ConnectAcceptedPacket*>(buffer);
+             std::cout << "Conexão aceita pelo servidor com o ID: " << player->playerId << std::endl;
+             break;
+        }
+    }
+  }
 
-  //   default:
-  //     std::cout << "Tecla não mapeada" << std::endl;
-  //     break;
-  //   }
-  // }
-  // if(tecla == 'a' || tecla == 'A'){Input.inputFlags = InputFlags::Left;}
-  // if(tecla == 'd' || tecla == 'D'){Input.inputFlags = InputFlags::Right;}
-  // if(tecla == 'w' || tecla == 'W'){Input.inputFlags = InputFlags::Up;}}
-  // if(tecla == 's' || tecla == 'S'){Input.inputFlags = InputFlags::Down;}
+  void SocketClient::HandleConnectAccepted(const char* buffer,int bytes)
+{
+   if(bytes < sizeof(ConnectAcceptedPacket))
+        return;
+
+    const ConnectAcceptedPacket* packet = reinterpret_cast<const ConnectAcceptedPacket*>(buffer);
+
+    playerId = packet->playerId;
+
+    std::cout << "Conectado ao servidor\n";
+
+    std::cout << "Meu ID: " << playerId << std::endl;
+}
+
+void SocketClient::HandleSnapshot(const char* buffer,int bytes)
+{
+   if(bytes < sizeof(WorldSnapshotHeader))
+        return;
+    
+    const WorldSnapshotHeader* header = reinterpret_cast<const WorldSnapshotHeader*>(buffer);
+
+    const char* current = buffer + sizeof(WorldSnapshotHeader);
+
+    for(uint16_t i = 0; i < header->playerCount; i++)
+    {
+        if (current + sizeof(PlayerSnapshot) > buffer + bytes)
+          return;
+      const PlayerSnapshot* player = reinterpret_cast<const PlayerSnapshot*>(current);
+
+      system("cls");
+      std::cout << "Player ID: " << player->playerId << std::endl;
+      std::cout << "Posição X do player: " << player->x << std::endl;
+      std::cout << "Posição Y do player: " << player->y << std::endl;
+      
+      current += sizeof(PlayerSnapshot);
+
+    }
 }
