@@ -3,14 +3,14 @@
 void Player::Update(float deltaTime)
 {
   if (input.up)
-    transform.y += deltaTime;
+    transform.x += deltaTime;
 
   if (input.down)
-    transform.y -= deltaTime;
-
-  if (input.left)
     transform.x -= deltaTime;
 
+  if (input.left)
+    transform.y -= deltaTime;
+
   if (input.right)
-    transform.x += deltaTime;
+    transform.y += deltaTime;
 }
